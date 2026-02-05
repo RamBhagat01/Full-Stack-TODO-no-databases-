@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TODO FRONTEND</title>
+
+
+  <script>
+    async function signup(){
+
+      const username = document.getElementById('place1').value;
+      const pasword = document.getElementById('place2').value;
+
+      // console.log(username);
+      // console.log(pasword)
+
+      const response = await fetch('http://localhost:3000/signup' ,{
+        method : 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body : JSON.stringify({
+          username : username,
+          pasword : pasword
+        })
+      })
+
+      const reply = await response.json();
+
+      //console.log(reply)
+      dom(reply);
+
+    }
+
+    function dom(reply){
+      document.querySelector('.message').innerHTML = '';
+      document.querySelector('.message').innerHTML = reply.message; 
+
+    }
+
+    async function signin(){
+
+      const username = document.getElementById('place3').value;
+      const pasword = document.getElementById('place4').value;
+
+      // console.log(username);
+      // console.log(pasword)
+
+      const response = await fetch('http://localhost:3000/signin' ,{
+        method : 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body : JSON.stringify({
+          username : username,
+          pasword : pasword
+        })
+      })
+
+      const reply = await response.json();
+
+      dom(reply);
+
+      localStorage.setItem('token' , reply.token);
+      render();
+      
+    }
+
+    async function insertTodo(){
+
+      const task = document.getElementById('todoInput').value;
+      //console.log(task)
+
+      const response = await fetch('http://localhost:3000/task' ,{
+        method : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'token' : `${localStorage.getItem('token')}`  
+        }, 
+
+        //must use json.stringify
+
+        body : JSON.stringify({
+          task : task,
+        })
+      })
+      const reply = await response.json();
+
+      dom(reply);
+      //console.log('reached')
+      render();
+      
+    }
+
+    async function del(id){
+
+      const response = await fetch('http://localhost:3000/delete',{
+        method : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'token' : `${localStorage.getItem('token')}`  
+        }, 
+        body : JSON.stringify({
+          id : id
+        })
+      });
+      const reply = await response.json();
+
+      dom(reply);
+
+      //console.log(reply.match);
+      //console.log('reached');
+
+      render();
+    }
+
+    async function render(){
+
+      try{
+        const response = await fetch('http://localhost:3000/todos', {
+          method : 'GET' ,
+          headers : {
+            'Content-Type': 'application/json',
+            'token' : `${localStorage.getItem('token')}`
+          } 
+        });
+        const reply = await response.json();
+
+        const todo = reply.todo;
+
+        const parent = document.querySelector('.list');
+        parent.innerHTML = '';
+
+        todo.forEach((element) => {
+          const division = document.createElement('div');
+          division.setAttribute('id' , `todo-${element.id+1}`);
+          division.setAttribute('style','display: flex; flex-direction: row; border : black , solid , 2px ; justify-content: space-between;');
+
+          const desc = document.createElement('span');
+          desc.innerHTML = element.task;
+
+          const but = document.createElement('button');
+
+          //use back ticks instead of open function!!!
+          but.setAttribute('onclick', `del(${element.id})`);
+          but.innerHTML = 'DELETE'
+
+          division.appendChild(desc);
+          division.appendChild(but);
+
+          parent.appendChild(division);
+
+        });
+      } catch(err){
+        console.log('Empty users')
+      }
+
+    }
+    render();
+    
+  </script>
+  
+</head>
+<body style="display:flex; flex-direction: column; align-items: center;">
+
+  <h1>Signup</h1>
+  <div class="signup"  style="display: flex; column-gap: 10px; border: solid , black, 2px; padding: 20px; max-width: 500px;">
+    
+   <input type="text" placeholder="username" id="place1">
+   <input type="text" placeholder="pasword" id="place2">
+   <button onclick="signup()">signup</button>
+  </div>
+
+    <h1>Signin</h1>
+  <div class="signin"  style="display: flex; column-gap: 10px; border: solid , black, 2px; padding: 20px; max-width: 500px;">
+    
+   <input type="text" placeholder="username" id="place3">
+   <input type="text" placeholder="pasword" id="place4">
+   <button onclick="signin()">signin</button>
+  </div>
+
+  <h1>Todo</h1>
+  <div class="todo"  style="display: flex; column-gap: 10px; border: solid , black, 2px; padding: 20px; max-width: 500px; min-width: 400px;">
+    
+   <input type="text" placeholder="todo description" id="todoInput">
+   <button onclick="insertTodo()">ADD TODO</button>
+  </div>
+
+  <h1>Messages</h1>
+  <div class="message"  style="display: flex; column-gap: 10px; border: solid , black, 2px; padding: 20px; max-width: 500px; min-width: 400px;">
+  </div>
+
+  <h1>ToDo List</h1>
+  <div class="list" style="
+    display: flex;
+    flex-direction:column; 
+    row-gap: 5px; 
+    border: solid , black, 2px; 
+    padding: 20px; 
+    max-width: 500px; 
+    min-width: 400px;
+  ">
+    
+    <!-- <div class="pointes">
+      <span class="description"></span>
+      <button class="delbutton">DELETE</button>
+    </div> -->
+
+  </div>
+  
+</body>
+</html>
